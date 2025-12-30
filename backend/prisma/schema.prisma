@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model board {
+  BoardID        Int            @id @default(autoincrement())
+  BoardThumbnail String?        @db.VarChar(255)
+  CreatorID      Int?
+  Private        Boolean?       @db.Bit(1)
+  Title          String?        @db.VarChar(255)
+  Description    String?        @db.VarChar(255)
+  BoardContentID Int?
+  CreatedAt      DateTime?      @db.Date
+  UpdatedAt      DateTime?      @db.Date
+  users          users?         @relation(fields: [CreatorID], references: [UserID], onDelete: Restrict, onUpdate: Restrict, map: "board_ibfk_1")
+  boardcontent   boardcontent[]
+
+  @@index([CreatorID], map: "CreatorID")
+}
+
+model boardcontent {
+  BoardContentID Int       @id @default(autoincrement())
+  BoardID        Int?
+  ContentID      Int?
+  CreateAt       DateTime? @db.Date
+  board          board?    @relation(fields: [BoardID], references: [BoardID], onDelete: Restrict, onUpdate: Restrict, map: "boardcontent_ibfk_1")
+  content        content?  @relation(fields: [ContentID], references: [ContentID], onDelete: Restrict, onUpdate: Restrict, map: "boardcontent_ibfk_2")
+
+  @@index([BoardID], map: "BoardID")
+  @@index([ContentID], map: "ContentID")
+}
+
+model comment {
+  CommentID Int       @id @default(autoincrement())
+  ContentID Int?
+  CreatorID Int?
+  ParentID  Int?
+  Text      String?   @db.VarChar(255)
+  CreateAt  DateTime? @db.Date
+  content   content?  @relation(fields: [ContentID], references: [ContentID], onDelete: Restrict, onUpdate: Restrict, map: "comment_ibfk_1")
+  users     users?    @relation(fields: [CreatorID], references: [UserID], onDelete: Restrict, onUpdate: Restrict, map: "comment_ibfk_2")
+
+  @@index([ContentID], map: "ContentID")
+  @@index([CreatorID], map: "CreatorID")
+}
+
+model communitygroup {
+  CommunityID     Int       @id @default(autoincrement())
+  CommunityRoomID Int?
+  RoomID          Int?
+  CreatedAt       DateTime? @db.Date
+  room            room?     @relation(fields: [RoomID], references: [RoomID], onDelete: Restrict, onUpdate: Restrict, map: "communitygroup_ibfk_1")
+
+  @@index([RoomID], map: "RoomID")
+}
+
+model content {
+  ContentID      Int              @id @default(autoincrement())
+  CreatorID      Int?
+  ParentID       Int?
+  Title          String?          @db.VarChar(255)
+  Description    String?          @db.VarChar(255)
+  PostType       String?          @db.VarChar(255)
+  Private        Boolean?         @db.Bit(1)
+  Views          Int?
+  Likes          Int?
+  Comments       Int?
+  Pins           Int?
+  Reports        Int?
+  AreaID         Int?
+  CreatedAt      DateTime?        @db.Date
+  PublishedAt    DateTime?        @db.Date
+  Score          Float?           @db.Float
+  boardcontent   boardcontent[]
+  comment        comment[]
+  users          users?           @relation(fields: [CreatorID], references: [UserID], onDelete: Restrict, onUpdate: Restrict, map: "content_ibfk_1")
+  file           file[]
+  historycontent historycontent[]
+
+  @@index([CreatorID], map: "CreatorID")
+}
+
+model file {
+  FileID        Int      @id @default(autoincrement())
+  Filepath      String?  @db.VarChar(255)
+  FileType      String?  @db.VarChar(255)
+  ContentID     Int?
+  ContentAreaID Int?
+  content       content? @relation(fields: [ContentID], references: [ContentID], onDelete: Restrict, onUpdate: Restrict, map: "file_ibfk_1")
+
+  @@index([ContentID], map: "ContentID")
+}
+
+model follow {
+  CreatorID                     Int
+  UserID                        Int
+  users_follow_CreatorIDTousers users @relation("follow_CreatorIDTousers", fields: [CreatorID], references: [UserID], onUpdate: Restrict, map: "follow_ibfk_1")
+  users_follow_UserIDTousers    users @relation("follow_UserIDTousers", fields: [UserID], references: [UserID], onUpdate: Restrict, map: "follow_ibfk_2")
+
+  @@id([CreatorID, UserID])
+  @@index([UserID], map: "UserID")
+}
+
+model friend {
+  UserID                             Int
+  OppositeUserID                     Int
+  users_friend_UserIDTousers         users @relation("friend_UserIDTousers", fields: [UserID], references: [UserID], onUpdate: Restrict, map: "friend_ibfk_1")
+  users_friend_OppositeUserIDTousers users @relation("friend_OppositeUserIDTousers", fields: [OppositeUserID], references: [UserID], onUpdate: Restrict, map: "friend_ibfk_2")
+
+  @@id([UserID, OppositeUserID])
+  @@index([OppositeUserID], map: "OppositeUserID")
+}
+
+model historycontent {
+  UserID    Int
+  ContentID Int
+  Reps      Int?
+  Liked     Boolean? @db.Bit(1)
+  Pinned    Boolean? @db.Bit(1)
+  users     users    @relation(fields: [UserID], references: [UserID], onUpdate: Restrict, map: "historycontent_ibfk_1")
+  content   content  @relation(fields: [ContentID], references: [ContentID], onUpdate: Restrict, map: "historycontent_ibfk_2")
+
+  @@id([UserID, ContentID])
+  @@index([ContentID], map: "ContentID")
+}
+
+model message {
+  MessageID     Int       @id @default(autoincrement())
+  RoomID        Int?
+  ContentID     Int?
+  MediaURL      String?   @db.VarChar(255)
+  MediaType     Int?
+  CreateAt      DateTime? @db.Date
+  SenderName    String?   @db.VarChar(255)
+  SenderProfile Int?
+  SenderID      Int?
+  room          room?     @relation(fields: [RoomID], references: [RoomID], onDelete: Restrict, onUpdate: Restrict, map: "message_ibfk_1")
+  users         users?    @relation(fields: [SenderID], references: [UserID], onDelete: Restrict, onUpdate: Restrict, map: "message_ibfk_2")
+
+  @@index([RoomID], map: "RoomID")
+  @@index([SenderID], map: "SenderID")
+}
+
+model notification {
+  NotificationID                     Int       @id @default(autoincrement())
+  UserID                             Int?
+  SenderID                           Int?
+  Seen                               Boolean?  @db.Bit(1)
+  Title                              String?   @db.VarChar(255)
+  Description                        String?   @db.VarChar(255)
+  CreatedAt                          DateTime? @db.Date
+  users_notification_UserIDTousers   users?    @relation("notification_UserIDTousers", fields: [UserID], references: [UserID], onDelete: Restrict, onUpdate: Restrict, map: "notification_ibfk_1")
+  users_notification_SenderIDTousers users?    @relation("notification_SenderIDTousers", fields: [SenderID], references: [UserID], onDelete: Restrict, onUpdate: Restrict, map: "notification_ibfk_2")
+
+  @@index([SenderID], map: "SenderID")
+  @@index([UserID], map: "UserID")
+}
+
+model participant {
+  ParticipantID Int       @id @default(autoincrement())
+  UserID        Int?
+  RoomID        Int?
+  Role          String?   @db.VarChar(255)
+  JoinedAt      DateTime? @db.Date
+  users         users?    @relation(fields: [UserID], references: [UserID], onDelete: Restrict, onUpdate: Restrict, map: "participant_ibfk_1")
+  room          room?     @relation(fields: [RoomID], references: [RoomID], onDelete: Restrict, onUpdate: Restrict, map: "participant_ibfk_2")
+
+  @@index([RoomID], map: "RoomID")
+  @@index([UserID], map: "UserID")
+}
+
+model report {
+  ReportID                      Int       @id @default(autoincrement())
+  CreatorID                     Int?
+  UserID                        Int?
+  Description                   String?   @db.VarChar(255)
+  Type                          String?   @db.VarChar(255)
+  Active                        Boolean?  @db.Bit(1)
+  CreateAt                      DateTime? @db.Date
+  users_report_CreatorIDTousers users?    @relation("report_CreatorIDTousers", fields: [CreatorID], references: [UserID], onDelete: Restrict, onUpdate: Restrict, map: "report_ibfk_1")
+  users_report_UserIDTousers    users?    @relation("report_UserIDTousers", fields: [UserID], references: [UserID], onDelete: Restrict, onUpdate: Restrict, map: "report_ibfk_2")
+
+  @@index([CreatorID], map: "CreatorID")
+  @@index([UserID], map: "UserID")
+}
+
+model room {
+  RoomID         Int              @id @default(autoincrement())
+  Name           String?          @db.VarChar(255)
+  PictureURL     String?          @db.VarChar(255)
+  Type           String?          @db.VarChar(255)
+  CreatedAt      DateTime?        @db.Date
+  UpdatedAt      DateTime?        @db.Date
+  communitygroup communitygroup[]
+  message        message[]
+  participant    participant[]
+}
+
+model users {
+  UserID                                    Int              @id @default(autoincrement())
+  Username                                  String?          @db.VarChar(255)
+  Password                                  String?          @db.VarChar(255)
+  Description                               String?          @db.VarChar(255)
+  ProfilePicture                            String?          @db.VarChar(255)
+  Followers                                 Int?
+  TotalLikes                                Int?
+  TotalReports                              Int?
+  PrivateContent                            Boolean?         @db.Bit(1)
+  PrivatePinned                             Boolean?         @db.Bit(1)
+  PrivateLike                               Boolean?         @db.Bit(1)
+  LikeNotification                          Boolean?         @db.Bit(1)
+  CommentNotification                       Boolean?         @db.Bit(1)
+  FollowNotification                        Boolean?         @db.Bit(1)
+  AreaID                                    Int?
+  board                                     board[]
+  comment                                   comment[]
+  content                                   content[]
+  follow_follow_CreatorIDTousers            follow[]         @relation("follow_CreatorIDTousers")
+  follow_follow_UserIDTousers               follow[]         @relation("follow_UserIDTousers")
+  friend_friend_UserIDTousers               friend[]         @relation("friend_UserIDTousers")
+  friend_friend_OppositeUserIDTousers       friend[]         @relation("friend_OppositeUserIDTousers")
+  historycontent                            historycontent[]
+  message                                   message[]
+  notification_notification_UserIDTousers   notification[]   @relation("notification_UserIDTousers")
+  notification_notification_SenderIDTousers notification[]   @relation("notification_SenderIDTousers")
+  participant                               participant[]
+  report_report_CreatorIDTousers            report[]         @relation("report_CreatorIDTousers")
+  report_report_UserIDTousers               report[]         @relation("report_UserIDTousers")
+}
