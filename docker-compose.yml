@@ -5,15 +5,15 @@ services:
     container_name: minxi
     restart: always
     environment:
-      MYSQL_USER: root
-      MYSQL_PASSWORD:
-      MYSQL_DATABASE: minxin
+      MYSQL_USER: "minxiUser"
+      MYSQL_ROOT_PASSWORD: "password"
+      MYSQL_DATABASE: "minxi"
       MYSQL_HOST: localhost
       MYSQL_PORT: 3306
     ports:
       - "3006:3006"
     volumes:
-      - mysql_data:var/lib/mysql
+      - minxi:/var/lib/mysql
   
   backend:
     build: ./backend
@@ -36,4 +36,4 @@ services:
       - backend
 
 volumes:
-  mysql_data:
+  minxi:

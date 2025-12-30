@@ -1,8 +1,10 @@
-FROM nodejscn/node
+FROM node:25-alpine
 
 WORKDIR /frontend
 
-COPY package.json package-lock.json ./
+COPY package*.json ./
+
+RUN npm install
 
 COPY . .
 
